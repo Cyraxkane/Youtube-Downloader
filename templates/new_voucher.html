@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Voucher - YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Create New Download Voucher</h1>
+        
+        <form id="voucher-form" action="{{ url_for('create_voucher') }}" method="post">
+            <div class="form-group">
+                <label for="youtube_url">YouTube URL (video or playlist):</label>
+                <input type="url" id="youtube_url" name="youtube_url" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Format:</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="format_type" value="mp4" checked onchange="toggleQualityOptions()"> MP4 (Video)
+                    </label>
+                    <label>
+                        <input type="radio" name="format_type" value="mp3" onchange="toggleQualityOptions()"> MP3 (Audio only)
+                    </label>
+                </div>
+            </div>
+            
+            <div id="mp4-options" class="form-group">
+                <label>Video Quality:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="mp4_quality" value="1080p" checked> 1080p</label>
+                    <label><input type="radio" name="mp4_quality" value="720p"> 720p</label>
+                    <label><input type="radio" name="mp4_quality" value="480p"> 480p</label>
+                    <label><input type="radio" name="mp4_quality" value="360p"> 360p</label>
+                </div>
+            </div>
+            
+            <div id="mp3-options" class="form-group" style="display: none;">
+                <label>Audio Quality:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="mp3_quality" value="320k" checked> 320k (High)</label>
+                    <label><input type="radio" name="mp3_quality" value="192k"> 192k (Medium)</label>
+                    <label><input type="radio" name="mp3_quality" value="128k"> 128k (Low)</label>
+                </div>
+            </div>
+            
+            <button type="submit" class="button">Generate Voucher</button>
+        </form>
+        
+        {% if voucher_code %}
+        <div class="voucher-result">
+            <h2>Your Voucher Code:</h2>
+            <div class="voucher-code">{{ voucher_code }}</div>
+            <p>Your download has started. You can check the status using this code.</p>
+            <a href="{{ url_for('index') }}" class="button">Finish</a>
+        </div>
+        {% endif %}
+        
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+    
+    <script>
+        function toggleQualityOptions() {
+            const formatType = document.querySelector('input[name="format_type"]:checked').value;
+            const mp4Options = document.getElementById('mp4-options');
+            const mp3Options = document.getElementById('mp3-options');
+            
+            if (formatType === 'mp4') {
+                mp4Options.style.display = 'block';
+                mp3Options.style.display = 'none';
+            } else {
+                mp4Options.style.display = 'none';
+                mp3Options.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

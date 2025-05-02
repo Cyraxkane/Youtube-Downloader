@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Downloader</h1>
+        
+        <div class="section">
+            <h2>New Voucher Validation</h2>
+            <a href="{{ url_for('new_voucher') }}" class="button">Create New Voucher</a>
+        </div>
+        
+        <div class="section">
+            <h2>Find Voucher</h2>
+            <form action="{{ url_for('find_voucher') }}" method="post">
+                <input type="text" name="voucher_code" placeholder="Enter voucher code" required>
+                <button type="submit" class="button">Search</button>
+            </form>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="admin-link">
+            <a href="{{ url_for('admin') }}?key=admin123" class="small-link">Admin Dashboard</a>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

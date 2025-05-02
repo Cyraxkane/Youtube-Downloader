@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher Status - YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Progress bar styles */
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Voucher Status</h1>
+        
+        <div class="voucher-details">
+            <h2>Voucher Code: {{ voucher.code }}</h2>
+            
+            <div class="info-group">
+                <p><strong>YouTube URL:</strong> <a href="{{ voucher.youtube_url }}" target="_blank">{{ voucher.youtube_url }}</a></p>
+                <p><strong>Format:</strong> {{ voucher.format_type.upper() }}</p>
+                <p><strong>Quality:</strong> {{ voucher.quality }}</p>
+                <p><strong>Created:</strong> {{ voucher.created_at }}</p>
+                {% if voucher.file_size %}
+                <p><strong>File Size:</strong> {{ "%.2f"|format(voucher.file_size) }} MB</p>
+                {% endif %}
+                
+                <div class="status-box status-{{ voucher.status }}">
+                    <p><strong>Status:</strong> {{ voucher.status|title }}</p>
+                    
+                    {% if voucher.status == 'processing' %}
+                        <p>Your file is downloading. Please wait...</p>
+                        <div class="progress-container">
+                            <div class="progress-bar" id="download-progress" style="width: {{ voucher.progress|default(0) }}%">
+                                {{ voucher.progress|default(0)|int }}%
+                            </div>
+                        </div>
+                    {% elif voucher.status == 'complete' %}
+                        <p>Your download is ready!</p>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('download_file', code=voucher.code) }}" class="button">Download File</a>
+                            <a href="{{ url_for('delete_file', code=voucher.code) }}" class="button button-danger" onclick="return confirm('Are you sure you want to delete this file?')">Delete File</a>
+                        </div>
+                    {% elif voucher.status == 'deleted' %}
+                        <p>This file has been deleted on {{ voucher.deleted_at }}.</p>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('delete_voucher_record', code=voucher.code) }}" class="button button-danger" onclick="return confirm('Are you sure you want to permanently delete this voucher record?')">Delete Voucher Record</a>
+                        </div>
+                    {% elif voucher.status == 'failed' %}
+                        <p>Sorry, there was an error processing your download.</p>
+                        {% if voucher.error_message %}
+                            <p class="error-message">{{ voucher.error_message }}</p>
+                        {% endif %}
+                        <div class="action-buttons">
+                            <a href="{{ url_for('delete_voucher_record', code=voucher.code) }}" class="button button-danger" onclick="return confirm('Are you sure you want to permanently delete this voucher record?')">Delete Voucher Record</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+    
+    {% if voucher.status == 'processing' %}
+    <script>
+        // Auto-refresh progress for processing downloads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update progress every 3 seconds
+            setInterval(function() {
+                fetch('{{ url_for("voucher_progress", code=voucher.code) }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const progressBar = document.getElementById('download-progress');
+                        if (progressBar) {
+                            progressBar.style.width = `${data.progress}%`;
+                            progressBar.textContent = `${Math.round(data.progress)}%`;
+                        }
+                        
+                        // If status changed, refresh the page
+                        if (data.status !== 'processing') {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error updating progress:', error));
+            }, 3000);
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .filter-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .pagination a {
+            padding: 8px 16px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            margin: 0 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #3498db;
+            color: white;
+            border: 1px solid #3498db;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #ddd;
+        }
+        
+        /* Progress bar styles */
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .progress-text {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        /* Status indicator styles */
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status-processing {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-complete {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .status-downloaded {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .status-failed {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .status-deleted {
+            background-color: #95a5a6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container admin-container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="filter-controls">
+            <form action="{{ url_for('admin') }}" method="get">
+                <input type="hidden" name="key" value="{{ request.args.get('key', '') }}">
+                <div class="filter-group">
+                    <label for="status">Filter by Status:</label>
+                    <select name="status" id="status">
+                        <option value="">All</option>
+                        <option value="processing" {% if request.args.get('status') == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="complete" {% if request.args.get('status') == 'complete' %}selected{% endif %}>Complete</option>
+                        <option value="downloaded" {% if request.args.get('status') == 'downloaded' %}selected{% endif %}>Downloaded</option>
+                        <option value="deleted" {% if request.args.get('status') == 'deleted' %}selected{% endif %}>Deleted</option>
+                        <option value="failed" {% if request.args.get('status') == 'failed' %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="format">Filter by Format:</label>
+                    <select name="format" id="format">
+                        <option value="">All</option>
+                        <option value="mp4" {% if request.args.get('format') == 'mp4' %}selected{% endif %}>MP4</option>
+                        <option value="mp3" {% if request.args.get('format') == 'mp3' %}selected{% endif %}>MP3</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_from">From Date:</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ request.args.get('date_from', '') }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_to">To Date:</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ request.args.get('date_to', '') }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="ip">IP Address:</label>
+                    <input type="text" name="ip" id="ip" value="{{ request.args.get('ip', '') }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="button">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+        
+        <h2>Download Logs</h2>
+        <p>Total Entries: {{ total_entries }}</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Voucher Code</th>
+                    <th>IP Address</th>
+                    <th>Format</th>
+                    <th>Quality</th>
+                    <th>File Size (MB)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.timestamp }}</td>
+                    <td>{{ log.voucher_code }}</td>
+                    <td>{{ log.ip_address }}</td>
+                    <td>{{ log.format_type }}</td>
+                    <td>{{ log.quality }}</td>
+                    <td>{{ "%.2f"|format(log.file_size) if log.file_size else "N/A" }}</td>
+                    <td>
+                        <span class="status-indicator status-{{ log.status }}">{{ log.status|title }}</span>
+                        {% if log.status == 'processing' %}
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: {{ log.progress|default(0) }}%">
+                                    {{ log.progress|default(0)|int }}%
+                                </div>
+                            </div>
+                            <div class="progress-text">Downloading...</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('voucher_status', code=log.voucher_code) }}" class="button">View Voucher</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('admin', page=page-1, status=request.args.get('status', ''), format=request.args.get('format', ''), date_from=request.args.get('date_from', ''), date_to=request.args.get('date_to', ''), ip=request.args.get('ip', ''), key=request.args.get('key', '')) }}">&laquo; Previous</a>
+            {% endif %}
+            
+            {% set start_page = page - 2 if page - 2 > 0 else 1 %}
+            {% set end_page = page + 2 if page + 2 <= total_pages else total_pages %}
+            
+            {% for p in range(start_page, end_page + 1) %}
+                <a href="{{ url_for('admin', page=p, status=request.args.get('status', ''), format=request.args.get('format', ''), date_from=request.args.get('date_from', ''), date_to=request.args.get('date_to', ''), ip=request.args.get('ip', ''), key=request.args.get('key', '')) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
+            {% endfor %}
+            
+            {% if page < total_pages %}
+                <a href="{{ url_for('admin', page=page+1, status=request.args.get('status', ''), format=request.args.get('format', ''), date_from=request.args.get('date_from', ''), date_to=request.args.get('date_to', ''), ip=request.args.get('ip', ''), key=request.args.get('key', '')) }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        
+        <h2>Statistics</h2>
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Total Downloads</h3>
+                <p>{{ stats.total_downloads }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>MP4 Downloads</h3>
+                <p>{{ stats.mp4_downloads }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>MP3 Downloads</h3>
+                <p>{{ stats.mp3_downloads }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>Total Storage Used</h3>
+                <p>{{ "%.2f"|format(stats.total_storage) }} MB</p>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+    
+    <script>
+        // Add JavaScript for auto-refresh and progress updates
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there are any processing downloads
+            const processingEntries = Array.from(document.querySelectorAll('.status-processing')).length;
+            
+            if (processingEntries > 0) {
+                // Auto-refresh the page every 5 seconds if there are processing downloads
+                setInterval(function() {
+                    // Use AJAX to get updated progress information
+                    fetch('{{ url_for("admin_progress_update") }}?key={{ request.args.get("key", "") }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update progress bars for each processing voucher
+                            data.forEach(item => {
+                                const row = document.querySelector(`tr[data-voucher="${item.voucher_code}"]`);
+                                if (row) {
+                                    const progressBar = row.querySelector('.progress-bar');
+                                    if (progressBar) {
+                                        progressBar.style.width = `${item.progress}%`;
+                                        progressBar.textContent = `${Math.round(item.progress)}%`;
+                                    }
+                                    
+                                    // If status changed, refresh the page
+                                    if (item.status !== 'processing') {
+                                        location.reload();
+                                    }
+                                }
+                            });
+                        })
+                        .catch(error => console.error('Error updating progress:', error));
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>
