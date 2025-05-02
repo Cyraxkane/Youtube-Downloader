@@ -27,7 +27,7 @@ A full-featured web app for downloading YouTube videos as MP4 🎥 or extracting
 
 📦 Setup
 
-git clone https://github.com/yourusername/youtube-downloader.git
+git clone https://github.com/Cyraxkane/Youtube-Downloader.git
 cd youtube-downloader
 
 Create a virtual environment:
