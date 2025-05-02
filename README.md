@@ -1,6 +1,9 @@
 🎬 YouTube Downloader Web Application 🚀
 
 A full-featured web app for downloading YouTube videos as MP4 🎥 or extracting audio as MP3 🎧 — with real-time progress tracking and a voucher system for asynchronous downloads!
+
+👨‍💻 Developed by: CyraxKane
+👥 Developer Team: BitRebel
 ✨ Features
 
 ✅ Easy-to-use web interface – No technical knowledge needed
@@ -138,26 +141,6 @@ Enable and restart:
 sudo ln -s /etc/nginx/sites-available/youtube-downloader /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 
-🗂️ Project Structure
-
-youtube-downloader/
-├── app.py                  # Main Flask app
-├── config.py               # Configuration file
-├── requirements.txt        # Dependencies
-├── downloads/              # Video/audio files
-├── logs/                   # Log files
-├── static/                 # CSS, JS, images
-│   ├── css/
-│   ├── js/
-│   └── img/
-├── templates/              # HTML templates
-│   ├── index.html
-│   ├── voucher.html
-│   └── admin.html
-└── utils/
-    ├── downloader.py       # Core downloading logic
-    └── voucher.py          # Voucher system logic
-
 🛠️ Troubleshooting
 Common Issues
 
@@ -165,9 +148,9 @@ Common Issues
 
 pip install --upgrade yt-dlp
 
-❌ Audio conversion fails: Check ffmpeg install
+    ❌ Audio conversion fails: Check ffmpeg install
 
-    ffmpeg -version
+ffmpeg -version
 
     ❌ Permission errors: Ensure app can write to downloads/ and logs/
 
@@ -187,9 +170,9 @@ Logs
 
 git checkout -b feature-name
 
-Commit your changes:
+    Commit your changes:
 
-    git commit -m "Add some feature"
+git commit -m "Add some feature"
 
     Push and open a pull request
 
@@ -206,6 +189,6 @@ MIT License – see LICENSE for details.
 
 ⚠️ Disclaimer
 
-    This app is intended for downloading videos you have the right to download. Please respect copyright laws and YouTube’s Terms of Service.
-
-    The developers are not responsible for misuse of this tool.
+This app is intended for downloading videos you have the right to download.
+Please respect copyright laws and YouTube’s Terms of Service.
+The developers are not responsible for misuse of this tool.
